@@ -884,7 +884,6 @@ def embedding_attention_seq2seq(encoder_inputs,
     # If feed_previous is a Tensor, we construct 2 graphs and use cond.
     def decoder(feed_previous_bool):
       reuse = None if feed_previous_bool else True
-      #reuse表示是否重用参数
       with variable_scope.variable_scope(
           variable_scope.get_variable_scope(), reuse=reuse) as scope:
         outputs, state = embedding_attention_decoder(
@@ -907,7 +906,7 @@ def embedding_attention_seq2seq(encoder_inputs,
 
     outputs_and_state = control_flow_ops.cond(feed_previous,
                                               lambda: decoder(True),
-                                              lambda: decoder(False)) #条件控制
+                                              lambda: decoder(False))
     outputs_len = len(decoder_inputs)  # Outputs length same as decoder inputs.
     state_list = outputs_and_state[outputs_len:]
     state = state_list[0]
@@ -917,6 +916,30 @@ def embedding_attention_seq2seq(encoder_inputs,
     return outputs_and_state[:outputs_len], state, encoder_state
 
 
+
+#####################add my dsr2seq model #######################################
+def embeding_attention_dsr2seq(
+
+)
+    # 建立encoder的网络
+    with variable_scope.variable_scope(
+                    scope or "embedding_attention_seq2seq", dtype=dtype) as scope:
+        dtype = scope.dtype
+        # Encoder.
+        encoder_cell = copy.deepcopy(cell)
+        encoder_cell = core_rnn_cell.EmbeddingWrapper(
+            encoder_cell,
+            embedding_classes=num_encoder_symbols,
+            embedding_size=embedding_size)
+        #获得encoder的输出和状态输出
+        encoder_outputs, encoder_state = core_rnn.static_rnn(
+            encoder_cell, encoder_inputs, dtype=dtype)
+
+
+
+
+
+###########################################################################
 def one2many_rnn_seq2seq(encoder_inputs,
                          decoder_inputs_dict,
                          enc_cell,
@@ -1046,6 +1069,7 @@ def one2many_rnn_seq2seq(encoder_inputs,
       state_dict[name] = state
 
   return outputs_dict, state_dict
+
 
 
 def sequence_loss_by_example(targets,
